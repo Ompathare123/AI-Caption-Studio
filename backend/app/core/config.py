@@ -13,6 +13,7 @@ class Settings(BaseSettings):
     UPLOAD_DIR: str = "backend/uploads"
     OUTPUT_DIR: str = "backend/outputs"
     TEMP_DIR: str = "backend/temp"
+    AUDIO_FOLDER: str = "backend/temp/audio"
 
     # Upload Configurations
     # Default: 2 GB in bytes (2 * 1024 * 1024 * 1024)
@@ -21,6 +22,11 @@ class Settings(BaseSettings):
 
     # Database Configurations
     DATABASE_URL: str = "sqlite:///./sql_app.db"
+
+    # Audio Extraction Configurations
+    FFMPEG_PATH: str = "ffmpeg"
+    AUDIO_SAMPLE_RATE: int = 16000
+    AUDIO_CHANNELS: int = 1
 
     model_config = SettingsConfigDict(
         env_file=".env",
@@ -32,5 +38,10 @@ class Settings(BaseSettings):
 settings = Settings()
 
 # Ensure directories exist
-for directory in [settings.UPLOAD_DIR, settings.OUTPUT_DIR, settings.TEMP_DIR]:
+for directory in [
+    settings.UPLOAD_DIR,
+    settings.OUTPUT_DIR,
+    settings.TEMP_DIR,
+    settings.AUDIO_FOLDER,
+]:
     os.makedirs(directory, exist_ok=True)

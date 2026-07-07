@@ -36,6 +36,21 @@ class DuplicateVideoError(VideoUploadError):
         super().__init__(message, status_code=409)
 
 
+class VideoNotFoundError(VideoUploadError):
+    def __init__(self, message: str = "Video not found"):
+        super().__init__(message, status_code=404)
+
+
+class FFmpegNotFoundError(VideoUploadError):
+    def __init__(self, message: str = "FFmpeg installation is not available on this server"):
+        super().__init__(message, status_code=500)
+
+
+class AudioExtractionError(VideoUploadError):
+    def __init__(self, message: str = "Failed to extract audio from video"):
+        super().__init__(message, status_code=500)
+
+
 def register_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(VideoUploadError)
     async def video_upload_error_handler(request: Request, exc: VideoUploadError):
