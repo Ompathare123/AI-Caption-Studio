@@ -50,6 +50,11 @@ class Settings(BaseSettings):
     DEFAULT_FONT: str = "Arial"
     DEFAULT_FONT_SIZE: int = 24
 
+    # Caption Animation Engine Configurations
+    DEFAULT_ANIMATION: str = "word_highlight"
+    DEFAULT_DURATION: float = 0.3
+    DEFAULT_HIGHLIGHT_COLOR: str = "#FFFF00"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

@@ -80,10 +80,11 @@ AI Caption Studio is a professional, production-ready, AI-powered video caption 
 - **Milestone 5**: Word-level alignment with WhisperX. (Completed)
 - **Milestone 6**: Subtitle generation engine. (Completed)
 - **Milestone 7**: Caption style engine. (Completed)
-- **Milestone 8**: Video rendering with stylized and animated captions.
-- **Milestone 9**: Frontend UI development (React + TypeScript + Tailwind CSS).
-- **Milestone 10**: Database integrations, user history, and job queue.
-- **Milestone 11**: Deployment, Dockerization, and CI/CD pipelines.
+- **Milestone 8**: Caption animation engine. (Completed)
+- **Milestone 9**: Video rendering with stylized and animated captions.
+- **Milestone 10**: Frontend UI development (React + TypeScript + Tailwind CSS).
+- **Milestone 11**: Database integrations, user history, and job queue.
+- **Milestone 12**: Deployment, Dockerization, and CI/CD pipelines.
 
 ---
 
@@ -569,6 +570,166 @@ Users can define customized style sheets through the API. The custom configurati
           {"word": "COOL 😎", "start": 0.8, "end": 1.2},
           {"word": "FIRE 🔥", "start": 1.2, "end": 1.6},
           {"word": "GAME 🎮", "start": 1.6, "end": 2.0}
+        ]
+      }
+    ]
+  }
+  ```
+
+---
+
+## Caption Animation Engine Architecture (Milestone 8)
+
+We implement a production-grade **Caption Animation Engine** that generates animation timelines and transition keyframes for subtitles and individual words.
+
+### Decoupling Animations from Rendering
+To keep rendering nodes lightweight and highly performant, all animation configurations (keyframes, displacement offsets, opacity levels, color transitions, scales) are calculated as pure data parameters inside the backend. The renderer (e.g. FFmpeg, HTML5 canvas, or WebGL) simply consumes this JSON timeline on playback or export without needing to run complex timing generators or styling logic locally.
+
+### Keyframe Easing System
+Transition keyframes are generated utilizing standard mathematical easing curves to ensure smooth and fluid visual movement:
+- **Linear**: Constant change rate.
+- **Ease In / Ease Out / Ease In Out**: Smooth acceleration and deceleration using quadratic/cubic curves.
+- **Bounce**: Rebound effect when settling into target states.
+- **Elastic**: Overshooting spring oscillation effect.
+
+### Supported Animation Presets
+The engine maps visual effects to coordinate changes and timings during a word's spoken window:
+- **Word Highlight**: Active word transitions to the configured highlight color during its timeframe.
+- **Word Pop**: Proportional scale pops from 1.0 to 1.35 and settles back.
+- **Word Fade**: Opacity fades in from 0.0 to 1.0.
+- **Word Bounce**: Vertical displacement coordinates bounce upwards (`-15.0px`).
+- **Word Slide / Rotate**: Translates horizontally or rotates by specified angle offsets.
+- **Zoom In / Out**: Spans scale values between 0.0 and 1.0.
+
+### Performance Caching
+A memory cache is integrated inside the manager. It keys generated sequences by MD5 hashes of combined inputs (subtitle lists, style configuration fields, preset codes), guaranteeing instant lookup hits for duplicated sequences while protecting memory limits.
+
+### New Module Files
+1. **[animation.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/schemas/animation.py)**: Validation models specifying request payloads, frame transitions, and nested animated segment outputs.
+2. **[keyframe_generator.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/animations/keyframe_generator.py)**: Easing math library calculating progress curves (Elastic, Bounce, Cubic).
+3. **[animation_presets.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/animations/animation_presets.py)**: Preset structures mapping pop scales, fade opacities, and gold highlights to word boundaries.
+4. **[timeline_generator.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/animations/timeline_generator.py)**: Timings helper evaluating maximum duration bounds.
+5. **[animation_engine.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/animations/animation_engine.py)**: Sequence compiler compiling words and preset layouts into frame lists.
+6. **[animation_manager.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/animations/animation_manager.py)**: Memory manager utilizing MD5 hashes to cache computed runs.
+7. **[animation_service.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/services/animation_service.py)**: Orchestrator service routing request parameters.
+8. **[animation.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/api/v1/endpoints/animation.py)**: Exposes routes `GET /api/v1/animations` and `POST /api/v1/animations/apply`.
+
+---
+
+### REST API Documentation
+
+#### 1. List Available Animations
+- **Endpoint**: `GET /api/v1/animations`
+- **Successful Response (`HTTP 200 OK`)**:
+  ```json
+  [
+    "word_highlight",
+    "word_pop",
+    "word_scale",
+    "word_fade",
+    "word_bounce",
+    "word_slide",
+    "word_rotate",
+    "word_blur",
+    "letter_animation",
+    "character_animation",
+    "sentence_fade",
+    "sentence_pop",
+    "karaoke_highlight",
+    "progress_fill",
+    "opacity_fade",
+    "zoom_in",
+    "zoom_out"
+  ]
+  ```
+
+#### 2. Apply Animation Keyframes
+- **Endpoint**: `POST /api/v1/animations/apply`
+- **Content-Type**: `application/json`
+- **Request Body**:
+  ```json
+  {
+    "subtitles": [
+      {
+        "index": 1,
+        "start": 0.0,
+        "end": 2.0,
+        "text": "hello world",
+        "words": [
+          {"word": "hello", "start": 0.1, "end": 0.8},
+          {"word": "world", "start": 0.9, "end": 1.7}
+        ]
+      }
+    ],
+    "style": {
+      "font_family": "Arial",
+      "font_size": 24.0,
+      "font_weight": "normal",
+      "text_color": "#FFFFFF",
+      "highlight_color": "#FFFF00",
+      "outline_color": "#000000",
+      "text_effects": {
+        "case": "normal",
+        "word_highlight": "current",
+        "auto_capitalization": true,
+        "auto_emoji": false
+      }
+    },
+    "animation_preset": "word_highlight"
+  }
+  ```
+- **Successful Response (`HTTP 200 OK`)**:
+  ```json
+  {
+    "animation_preset": "word_highlight",
+    "duration": 2.0,
+    "animated_subtitles": [
+      {
+        "index": 1,
+        "start": 0.0,
+        "end": 2.0,
+        "text": "hello world",
+        "words": [
+          {
+            "word": "hello",
+            "start": 0.1,
+            "end": 0.8,
+            "animation_type": "word_highlight",
+            "scale": 1.0,
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "position_x": 0.0,
+            "position_y": 0.0,
+            "color": "#FFFFFF",
+            "highlight_color": "#FFFF00",
+            "shadow_color": "#000000",
+            "keyframes": [
+              {"time": 0.09, "scale": 1.0, "opacity": 1.0, "rotation": 0.0, "position_x": 0.0, "position_y": 0.0, "color": "#FFFFFF"},
+              {"time": 0.1, "scale": 1.0, "opacity": 1.0, "rotation": 0.0, "position_x": 0.0, "position_y": 0.0, "color": "#FFFF00"},
+              {"time": 0.8, "scale": 1.0, "opacity": 1.0, "rotation": 0.0, "position_x": 0.0, "position_y": 0.0, "color": "#FFFF00"},
+              {"time": 0.81, "scale": 1.0, "opacity": 1.0, "rotation": 0.0, "position_x": 0.0, "position_y": 0.0, "color": "#FFFFFF"}
+            ]
+          },
+          {
+            "word": "world",
+            "start": 0.9,
+            "end": 1.7,
+            "animation_type": "word_highlight",
+            "scale": 1.0,
+            "opacity": 1.0,
+            "rotation": 0.0,
+            "position_x": 0.0,
+            "position_y": 0.0,
+            "color": "#FFFFFF",
+            "highlight_color": "#FFFF00",
+            "shadow_color": "#000000",
+            "keyframes": [
+              {"time": 0.89, "scale": 1.0, "opacity": 1.0, "rotation": 0.0, "position_x": 0.0, "position_y": 0.0, "color": "#FFFFFF"},
+              {"time": 0.9, "scale": 1.0, "opacity": 1.0, "rotation": 0.0, "position_x": 0.0, "position_y": 0.0, "color": "#FFFF00"},
+              {"time": 1.7, "scale": 1.0, "opacity": 1.0, "rotation": 0.0, "position_x": 0.0, "position_y": 0.0, "color": "#FFFF00"},
+              {"time": 1.71, "scale": 1.0, "opacity": 1.0, "rotation": 0.0, "position_x": 0.0, "position_y": 0.0, "color": "#FFFFFF"}
+            ]
+          }
         ]
       }
     ]
