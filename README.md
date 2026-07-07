@@ -74,7 +74,7 @@ AI Caption Studio is a professional, production-ready, AI-powered video caption 
 ## Development Roadmap
 
 - **Milestone 1**: Project initialization, directory structure, health check endpoint, environment setup. (Completed)
-- **Milestone 2**: Video upload & saving API, backend file storage, and integration tests.
+- **Milestone 2**: Video upload & saving API, backend file storage, and integration tests. (Completed)
 - **Milestone 3**: Audio extraction using FFmpeg.
 - **Milestone 4**: Speech-to-Text transcription with Faster-Whisper.
 - **Milestone 5**: Word-level alignment and SRT/ASS subtitle generation.
@@ -82,6 +82,58 @@ AI Caption Studio is a professional, production-ready, AI-powered video caption 
 - **Milestone 7**: Frontend UI development (React + TypeScript + Tailwind CSS).
 - **Milestone 8**: Database integrations, user history, and job queue.
 - **Milestone 9**: Deployment, Dockerization, and CI/CD pipelines.
+
+---
+
+## System Architecture & Modules (Milestone 2)
+
+We implement Clean Architecture to separate routing, data validation, business logic, configuration, and data persistence.
+
+### Folder Structure & Purpose
+
+- **`backend/app/core/`**: Configuration, error definitions, and global log configuration.
+- **`backend/app/database/`**: Database engine and connection configurations.
+- **`backend/app/models/`**: SQLAlchemy ORM models mapping to SQLite database structures.
+- **`backend/app/schemas/`**: Pydantic schemas validating input payloads and formatting outgoing responses.
+- **`backend/app/services/`**: The core business logic including file chunk streaming, OpenCV validation, and hash check.
+- **`backend/app/utils/`**: Reusable low-level helpers like file hashing and validation criteria.
+- **`backend/app/api/v1/endpoints/`**: API endpoint router logic.
+
+### New Module Files
+
+1. **[config.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/core/config.py)**: Loads settings from `.env` using Pydantic Settings. Ensures vital server subdirectories exist.
+2. **[logging.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/core/logging.py)**: Configures standard formatted logger capturing execution metrics.
+3. **[errors.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/core/errors.py)**: Declares custom upload exceptions and binds global error exception handlers to abstract traceback leaks.
+4. **[session.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/database/session.py)**: Initiates SQLAlchemy engine connection pool and local DB session.
+5. **[video.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/models/video.py)**: Defines `Video` schema storing original name, stored path, SHA-256 file hash, file size, duration, status, and timestamp.
+6. **[upload.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/schemas/upload.py)**: Defines `VideoUploadResponse` validation structure.
+7. **[file_utils.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/utils/file_utils.py)**: Low-level file checkers verifying extensions, MIME formats, generating date folders (`YYYY/MM`), and chunked file hashing.
+8. **[upload_service.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/services/upload_service.py)**: The central business pipeline driving size validation, temp streaming, OpenCV checks, DB integration, and directory movement.
+
+### REST API Documentation
+
+#### Upload Video File
+- **Endpoint**: `POST /api/v1/upload`
+- **Content-Type**: `multipart/form-data`
+- **Request Parameters**:
+  - `file`: Video binary payload.
+- **Validations Enforced**:
+  - **Allowed Extensions**: `.mp4`, `.mov`, `.avi`, `.mkv`, `.webm`. (Returns `HTTP 400 Bad Request` if mismatch).
+  - **Allowed MIME Types**: `video/mp4`, `video/quicktime`, `video/x-msvideo`, `video/avi`, `video/msvideo`, `video/x-matroska`, `video/mkv`, `video/webm`. (Returns `HTTP 400 Bad Request` if mismatch).
+  - **Maximum Size**: `2 GB`. (Returns `HTTP 413 Payload Too Large` if exceeded).
+  - **Duplicate Validation**: SHA-256 hash comparison against existing records. (Returns `HTTP 409 Conflict` if duplicate).
+  - **Corrupted Validation**: OpenCV integrity verification. (Returns `HTTP 400 Bad Request` if corrupted).
+  - **Empty Validation**: File size must exceed 0 bytes. (Returns `HTTP 400 Bad Request` if empty).
+- **Successful Response (`HTTP 201 Created`)**:
+  ```json
+  {
+    "id": "bfcc4358-81da-4007-b44f-afb451940e64",
+    "filename": "my_video.mp4",
+    "size": 1048576,
+    "duration": 12.4,
+    "status": "uploaded"
+  }
+  ```
 
 ---
 
