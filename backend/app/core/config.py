@@ -55,6 +55,13 @@ class Settings(BaseSettings):
     DEFAULT_DURATION: float = 0.3
     DEFAULT_HIGHLIGHT_COLOR: str = "#FFFF00"
 
+    # Video Rendering Configurations
+    DEFAULT_RENDER_CODEC: str = "h264"
+    DEFAULT_CRF: int = 18
+    DEFAULT_PRESET: str = "medium"
+    DEFAULT_THREADS: int = 4
+    RENDERED_OUTPUT_DIR: str = "backend/outputs/rendered"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -72,6 +79,7 @@ for directory in [
     settings.AUDIO_FOLDER,
     settings.SUBTITLES_OUTPUT_DIR,
     settings.STYLES_DIR,
-    os.path.join(settings.STYLES_DIR, "custom")
+    os.path.join(settings.STYLES_DIR, "custom"),
+    settings.RENDERED_OUTPUT_DIR
 ]:
     os.makedirs(directory, exist_ok=True)

@@ -81,7 +81,7 @@ AI Caption Studio is a professional, production-ready, AI-powered video caption 
 - **Milestone 6**: Subtitle generation engine. (Completed)
 - **Milestone 7**: Caption style engine. (Completed)
 - **Milestone 8**: Caption animation engine. (Completed)
-- **Milestone 9**: Video rendering with stylized and animated captions.
+- **Milestone 9**: Video rendering with stylized and animated captions. (Completed)
 - **Milestone 10**: Frontend UI development (React + TypeScript + Tailwind CSS).
 - **Milestone 11**: Database integrations, user history, and job queue.
 - **Milestone 12**: Deployment, Dockerization, and CI/CD pipelines.
@@ -733,6 +733,92 @@ A memory cache is integrated inside the manager. It keys generated sequences by 
         ]
       }
     ]
+  }
+  ```
+
+---
+
+## Video Rendering Engine Architecture (Milestone 9)
+
+We implement a production-grade, frame-accurate **Video Rendering Engine** that composites styled captions and keyframe-interpolated animations onto original video frame buffers using OpenCV and Pillow, and re-muxes the tracks with the original video's audio using FFmpeg.
+
+### Rendering Pipeline
+1. **Asset Resolving**: The `AssetManager` queries the SQLite database to locate the original video file and fetches the pre-computed subtitle JSON file from the storage directory.
+2. **Layout Compilation**: The `SubtitleRenderer` computes the absolute text coordinates (X, Y) of each word in the active segment, taking into account the vertical/horizontal alignment anchors, spacing parameters, and safe margins.
+3. **Keyframe Timing Interpolation**: For each frame at timestamp `t`, the `TimelinePlayer` looks up the active segment and linear-interpolates properties (scale, opacity, rotation, horizontal/vertical translation offsets, color) between the closest keyframes.
+4. **Compositing**: The `FrameRenderer` draws the caption onto a transparent overlay layer using PIL:
+   - **Background Boxes**: Renders rounded boxes with custom padding, background color, opacity, and corner radius.
+   - **Outlines and Shadows**: Draws custom border strokes and shadow layers offsetted from the main text.
+   - **Rotations**: Creates a temporary sub-image for rotated words, applies high-quality bicubic rotation, and composites it onto the frame.
+5. **Video Encoding**: The `VideoWriter` writes the composited frame sequence to a temporary video file.
+6. **Audio Re-muxing**: The `VideoEncoder` executes an asynchronous FFmpeg command to merge the captioned video stream with the original video's audio track.
+
+### Configurable Parameters (.env)
+- `DEFAULT_RENDER_CODEC`: Codec standard used for output encoding (e.g. `h264`).
+- `DEFAULT_CRF`: Constant Rate Factor compression metric (e.g. `18`).
+- `DEFAULT_PRESET`: Encoding speed/compression preset (e.g. `medium`).
+- `DEFAULT_THREADS`: Processor core allocation count (e.g. `4`).
+
+### New Module Files
+1. **[font_manager.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/rendering/font_manager.py)**: Searches and loads TTF/OTF system fonts, caching Pillow instances.
+2. **[asset_manager.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/rendering/asset_manager.py)**: Queries SQLite records and resolves files.
+3. **[timeline_player.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/rendering/timeline_player.py)**: Looks up active segments and interpolates keyframes state.
+4. **[subtitle_renderer.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/rendering/subtitle_renderer.py)**: Calculates line grouping layout positions.
+5. **[frame_renderer.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/rendering/frame_renderer.py)**: Draws background boxes, borders, shadows, and applies rotations.
+6. **[video_encoder.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/rendering/video_encoder.py)**: Re-muxes audio tracks using FFmpeg commands.
+7. **[video_renderer.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/rendering/video_renderer.py)**: Executes main frame extraction and writer loops.
+8. **[renderer.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/rendering/renderer.py)**: Wrapper exposing entry point API.
+9. **[render_service.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/services/render_service.py)**: Orchestrates background rendering tasks.
+10. **[render.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/schemas/render.py)**: Requests validation and status tracking models.
+11. **[render.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/api/v1/endpoints/render.py)**: Exposes endpoints `POST /api/v1/render` and `GET /api/v1/render/{id}`.
+
+---
+
+### REST API Documentation
+
+#### 1. Trigger Video Caption Rendering
+- **Endpoint**: `POST /api/v1/render`
+- **Content-Type**: `application/json`
+- **Request Body**:
+  ```json
+  {
+    "video_id": "c62de6ec-b4c6-43b8-a720-33db50d53c7a",
+    "subtitle_id": "76d54d92-2dfc-42cb-b1b7-a3c799a4e320",
+    "style_name": "default",
+    "animation_preset": "word_pop"
+  }
+  ```
+- **Successful Response (`HTTP 202 Accepted`)**:
+  ```json
+  {
+    "render_id": "f81d4fae-7dec-11d0-a765-00a0c91e6bf6",
+    "status": "processing",
+    "progress": 0,
+    "output_path": null,
+    "error_message": null
+  }
+  ```
+
+#### 2. Get Rendering Progress Status
+- **Endpoint**: `GET /api/v1/render/{render_id}`
+- **Successful Response (`HTTP 200 OK`)**:
+  ```json
+  {
+    "render_id": "f81d4fae-7dec-11d0-a765-00a0c91e6bf6",
+    "status": "rendering",
+    "progress": 45,
+    "output_path": null,
+    "error_message": null
+  }
+  ```
+- **Completed Response (`HTTP 200 OK`)**:
+  ```json
+  {
+    "render_id": "f81d4fae-7dec-11d0-a765-00a0c91e6bf6",
+    "status": "completed",
+    "progress": 100,
+    "output_path": "backend/outputs/rendered/rendered_f81d4fae-7dec-11d0-a765-00a0c91e6bf6.mp4",
+    "error_message": null
   }
   ```
 
