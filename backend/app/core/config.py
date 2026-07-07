@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     OUTPUT_DIR: str = "backend/outputs"
     TEMP_DIR: str = "backend/temp"
     AUDIO_FOLDER: str = "backend/temp/audio"
+    SUBTITLES_OUTPUT_DIR: str = "backend/outputs/subtitles"
 
     # Upload Configurations
     # Default: 2 GB in bytes (2 * 1024 * 1024 * 1024)
@@ -37,6 +38,12 @@ class Settings(BaseSettings):
     ALIGNMENT_DEVICE: str = "cpu"
     ALIGNMENT_BATCH_SIZE: int = 16
 
+    # Subtitle Generation Configurations
+    MAX_WORDS_PER_LINE: int = 5
+    MAX_LINES: int = 2
+    READING_SPEED: int = 18
+    DEFAULT_SUBTITLE_FORMAT: str = "srt"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -52,5 +59,6 @@ for directory in [
     settings.OUTPUT_DIR,
     settings.TEMP_DIR,
     settings.AUDIO_FOLDER,
+    settings.SUBTITLES_OUTPUT_DIR,
 ]:
     os.makedirs(directory, exist_ok=True)

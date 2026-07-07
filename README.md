@@ -78,10 +78,11 @@ AI Caption Studio is a professional, production-ready, AI-powered video caption 
 - **Milestone 3**: Audio extraction using FFmpeg. (Completed)
 - **Milestone 4**: Speech-to-Text transcription with Faster-Whisper. (Completed)
 - **Milestone 5**: Word-level alignment with WhisperX. (Completed)
-- **Milestone 6**: SRT/ASS subtitle generation and stylized/animated captions.
-- **Milestone 7**: Frontend UI development (React + TypeScript + Tailwind CSS).
-- **Milestone 8**: Database integrations, user history, and job queue.
-- **Milestone 9**: Deployment, Dockerization, and CI/CD pipelines.
+- **Milestone 6**: Subtitle generation engine. (Completed)
+- **Milestone 7**: Video rendering with stylized and animated captions.
+- **Milestone 8**: Frontend UI development (React + TypeScript + Tailwind CSS).
+- **Milestone 9**: Database integrations, user history, and job queue.
+- **Milestone 10**: Deployment, Dockerization, and CI/CD pipelines.
 
 ---
 
@@ -319,6 +320,67 @@ State-of-the-art subtitle systems require micro-precision word timestamps to:
         "confidence": 0.98
       }
     ],
+    "status": "completed"
+  }
+  ```
+
+---
+
+## Subtitle Generation Architecture (Milestone 6)
+
+We implement a production-grade Subtitle Generation Engine supporting JSON, SRT, and Advanced SubStation Alpha (ASS) formats.
+
+### Difference Between Subtitle Formats
+
+1. **JSON Format**: A custom structured representation of words and captions. It retains word-level properties (confidence, line_index, caption_index) and is optimized for front-end rendering engines or custom databases.
+2. **SRT Format (SubRip)**: The most widely supported, lightweight subtitle format. It uses sequential numbering and simple `HH:MM:SS,mmm` timestamp blocks. It is pure text and supports minimal styling.
+3. **ASS Format (Advanced SubStation Alpha)**: A highly advanced, programmable subtitle format. It contains stylesheet definitions (font family, colors, shadows, borders, alignments) and supports complex layout positioning and karaoke-style text animation effects.
+
+### Subtitle Segmentation Strategy
+
+To ensure natural readability, we group raw words into structured caption blocks using the following rules:
+- **Punctuation Awareness**: Natural splits are triggered at sentence boundaries (`.`, `?`, `!`) and weak punctuation pauses (`,`, `;`, `:`) to match the speaker's cadence.
+- **Duration/Pause Detection**: Large silences between words (> 1.0s) trigger automatic caption splits.
+- **Line Balancing**: Captions are limited to `2` lines and a configurable words-per-line maximum (default: `5`). If a caption block spans multiple lines, the words are evenly divided (balanced) in half to avoid leaving single words on a line.
+- **Reading Speed Limits**: Ensures captions do not flash too fast. If a caption has a duration shorter than the required reading speed threshold (characters per second, default `18`), the start and end times are expanded outward (left and right) safely without overlapping adjacent captions.
+
+### New Module Files
+
+1. **[subtitle_builder.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/services/subtitle_builder.py)**: Grouping algorithm managing unaligned word interpolation, segment divisions, and reading speed expansions.
+2. **[subtitle_formatter.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/services/subtitle_formatter.py)**: Serializes caption structures into valid SRT time blocks, ASS stylesheet event layers, and custom JSON trees.
+3. **[subtitle_exporter.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/services/subtitle_exporter.py)**: Exporter pipeline writing output content to `backend/outputs/subtitles/` using UTF-8, handling write errors safely.
+4. **[subtitle_service.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/services/subtitle_service.py)**: Orchestrates retrieval of alignments from the database, runs builder, and writes the requested formats.
+5. **[subtitle.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/schemas/subtitle.py)**: Declares API validation schemas for requests and responses.
+6. **[subtitle.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/api/v1/endpoints/subtitle.py)**: Exposes the `POST /api/v1/subtitles/generate` route.
+
+### REST API Documentation
+
+#### Generate Subtitle Files
+- **Endpoint**: `POST /api/v1/subtitles/generate`
+- **Content-Type**: `application/json`
+- **Request Body**:
+  ```json
+  {
+    "alignment_id": "8c257d90-349f-43b6-96cb-52ebc689d0c2",
+    "style": "default",
+    "max_words_per_line": 5,
+    "max_lines": 2,
+    "output_formats": ["json", "srt", "ass"]
+  }
+  ```
+- **Validations Enforced**:
+  - **Alignment Presence Check**: Verifies if the `alignment_id` is registered in the database. (Returns `HTTP 404 Not Found` if missing).
+  - **Layout Parameters**: Enforces constraints (`max_words_per_line` between 1-20, `max_lines` between 1-5).
+- **Successful Response (`HTTP 200 OK`)**:
+  ```json
+  {
+    "id": "a1b2c3d4-e5f6-7a8b-9c0d-1e2f3a4b5c6d",
+    "subtitle_files": {
+      "json": "backend/outputs/subtitles/8c257d90-349f-43b6-96cb-52ebc689d0c2.json",
+      "srt": "backend/outputs/subtitles/8c257d90-349f-43b6-96cb-52ebc689d0c2.srt",
+      "ass": "backend/outputs/subtitles/8c257d90-349f-43b6-96cb-52ebc689d0c2.ass"
+    },
+    "caption_count": 58,
     "status": "completed"
   }
   ```

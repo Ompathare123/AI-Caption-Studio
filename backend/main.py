@@ -13,6 +13,7 @@ from backend.app.database.session import Base, engine
 from backend.app.services.transcription_service import TranscriptionService
 from backend.app.models.video import Video
 from backend.app.models.transcript import Transcript, TranscriptSegment
+from backend.app.models.alignment import Alignment
 
 
 @asynccontextmanager

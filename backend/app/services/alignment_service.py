@@ -1,6 +1,6 @@
+import json
 import os
 import time
-import uuid
 from typing import Any, Dict, Tuple
 import whisperx
 from sqlalchemy.orm import Session
@@ -12,6 +12,7 @@ from backend.app.core.errors import (
     TranscriptNotFoundError,
 )
 from backend.app.core.logging import logger
+from backend.app.models.alignment import Alignment
 from backend.app.models.transcript import Transcript
 
 
@@ -57,6 +58,7 @@ class AlignmentService:
     ) -> dict:
         """
         Fetch transcript segments and run phonetic wave alignment using WhisperX.
+        Saves result to alignments database table.
         """
         start_time = time.time()
         logger.info(
@@ -136,6 +138,19 @@ class AlignmentService:
                         }
                     )
 
+            # 8. Save alignment results to database
+            db_alignment = Alignment(
+                transcript_id=transcript_id,
+                audio_id=audio_id,
+                language=transcript.language,
+                duration=round(duration, 2),
+                status="completed",
+                words_json=json.dumps(aligned_words),
+            )
+            db.add(db_alignment)
+            db.commit()
+            db.refresh(db_alignment)
+
             processing_time = time.time() - start_time
             logger.info(
                 f"Alignment Finished: {audio_filename} "
@@ -143,9 +158,9 @@ class AlignmentService:
             )
 
             return {
-                "id": str(uuid.uuid4()),
-                "language": transcript.language,
-                "duration": round(duration, 2),
+                "id": db_alignment.id,
+                "language": db_alignment.language,
+                "duration": db_alignment.duration,
                 "words": aligned_words,
                 "status": "completed",
             }
