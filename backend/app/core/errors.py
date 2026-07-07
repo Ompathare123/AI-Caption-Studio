@@ -87,8 +87,8 @@ class StyleValidationError(VideoUploadError):
 
 
 class RenderingError(VideoUploadError):
-    def __init__(self, message: str = "Video rendering failed"):
-        super().__init__(message, status_code=500)
+    def __init__(self, message: str = "Video rendering failed", status_code: int = 500):
+        super().__init__(message, status_code=status_code)
 
 
 def register_error_handlers(app: FastAPI) -> None:

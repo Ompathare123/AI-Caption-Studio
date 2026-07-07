@@ -21,6 +21,7 @@ const Processing: React.FC = () => {
     setCurrentTranscription,
     setCurrentAlignment,
     setCurrentSubtitle,
+    setProjectId,
   } = useApp();
   const { showToast } = useToast();
 
@@ -150,6 +151,12 @@ const Processing: React.FC = () => {
         const subData = await apiService.generateSubtitles(alignmentId, "json");
         setCurrentSubtitle(subData);
         addLog("Subtitles generated successfully in output folders.");
+        
+        // Initialize editing project
+        addLog("Initializing timeline editing project...");
+        const projData = await apiService.createProject(currentVideo.id, currentVideo.id);
+        setProjectId(projData.id);
+        addLog(`Project initialized successfully. Project ID: ${projData.id}`);
         updateStepStatus("subtitle", "completed");
       } catch (e: any) {
         handleStepFailure(

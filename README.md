@@ -877,5 +877,31 @@ npm run test
 
 ---
 
+## Video Preview & Timeline Editor (Milestone 11)
+
+We implement the core editing workspace in the React frontend and link it to the FastAPI backend with a new `Project` database model to persist caption segment adjustments, timing shifts, visual styles configurations, and presets.
+
+### Features
+1. **Premiere / CapCut Styled Timeline Editor**:
+   - **Playhead Tracking**: Red vertical playhead line moving in sync with the video's current playback time.
+   - **Boundary Adjustments**: Interactive left/right handles on caption block edges to drag-resize duration start/end times.
+   - **Snap to Grid**: Alignment boundaries automatically snap to 0.1-second increments when snap-to-grid is checked.
+   - **Zoom Controls**: Zoom slider adjusting width scaling of tracks on the timeline.
+2. **Comprehensive Caption Actions**:
+   - **Text Modifiers**: Instant text editing in side textboxes, distributing word alignment boundaries automatically.
+   - **Split Segment**: Split segment blocks at the active playhead time.
+   - **Merge Segment**: Merge segment blocks with the adjacent segment block.
+   - **Delete/Insert**: Remove or insert caption blocks at the playhead position.
+3. **History Operations (Undo / Redo)**:
+   - Tracks changes inside an in-memory/localStorage stack structure supporting **Undo (Ctrl+Z)** and **Redo (Ctrl+Y)** of timing adjustments, style presets, text changes, deletions, and splits.
+4. **Auto-Save Mechanism**:
+   - Checks modifications and syncs state changes to the SQLite database via `PUT /api/v1/projects/{id}` every 5 seconds.
+5. **FastAPI Projects Endpoints**:
+   - `POST /api/v1/projects`: Initialize project session from a video and subtitle reference.
+   - `GET /api/v1/projects/{project_id}`: Load project configurations.
+   - `PUT /api/v1/projects/{project_id}`: Update captions timeline, visual styles, and presets.
+
+---
+
 ## License
 MIT

@@ -74,6 +74,16 @@ export interface RenderStatusResponse {
   error_message: string | null;
 }
 
+export interface ProjectResponse {
+  id: string;
+  video_id: string;
+  captions_data: AlignmentSegment[];
+  style_data: any;
+  animation_preset: string;
+  created_at: string;
+  updated_at: string;
+}
+
 export const apiService = {
   /**
    * Upload video binary file
@@ -199,5 +209,45 @@ export const apiService = {
       return `http://localhost:8000/static/${cleanPath}`;
     }
     return `http://localhost:8000/static/${cleanPath}`;
+  },
+
+  /**
+   * Create/Initialize a timeline editing project
+   */
+  createProject: async (
+    videoId: string,
+    subtitleId?: string
+  ): Promise<ProjectResponse> => {
+    const response = await api.post<ProjectResponse>("/projects", {
+      video_id: videoId,
+      subtitle_id: subtitleId,
+    });
+    return response.data;
+  },
+
+  /**
+   * Load project metadata and captions timeline
+   */
+  loadProject: async (projectId: string): Promise<ProjectResponse> => {
+    const response = await api.get<ProjectResponse>(`/projects/${projectId}`);
+    return response.data;
+  },
+
+  /**
+   * Save caption adjustments and styles to project
+   */
+  saveProject: async (
+    projectId: string,
+    updateData: {
+      captions_data: AlignmentSegment[];
+      style_data: any;
+      animation_preset: string;
+    }
+  ): Promise<ProjectResponse> => {
+    const response = await api.put<ProjectResponse>(
+      `/projects/${projectId}`,
+      updateData
+    );
+    return response.data;
   },
 };

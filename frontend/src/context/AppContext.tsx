@@ -78,6 +78,8 @@ interface AppContextProps {
   setRenderId: (id: string | null) => void;
   recentVideos: VideoMetadata[];
   saveVideoToRecent: (video: VideoMetadata) => void;
+  projectId: string | null;
+  setProjectId: (id: string | null) => void;
 }
 
 const AppContext = createContext<AppContextProps | undefined>(undefined);
@@ -100,6 +102,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
     useState<string>("word_highlight");
   const [renderId, setRenderId] = useState<string | null>(null);
   const [recentVideos, setRecentVideos] = useState<VideoMetadata[]>([]);
+  const [projectId, setProjectId] = useState<string | null>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("recent_videos");
@@ -148,6 +151,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({
         setRenderId,
         recentVideos,
         saveVideoToRecent,
+        projectId,
+        setProjectId,
       }}
     >
       {children}
