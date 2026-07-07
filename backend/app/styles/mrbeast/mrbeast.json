@@ -1,0 +1,31 @@
+{
+    "font_family": "Futura Extra Bold",
+    "font_size": 30.0,
+    "font_weight": "bold",
+    "text_color": "#FFFFFF",
+    "highlight_color": "#FFFF00",
+    "outline_color": "#000000",
+    "outline_width": 3.0,
+    "shadow_color": "#00E5FF",
+    "shadow_offset_x": 2.5,
+    "shadow_offset_y": 2.5,
+    "background_box": false,
+    "background_color": "#000000",
+    "background_opacity": 0.0,
+    "border_radius": 0.0,
+    "padding": 10.0,
+    "line_spacing": 1.2,
+    "letter_spacing": 0.5,
+    "safe_margin": 15.0,
+    "vertical_position": "center",
+    "horizontal_position": "center",
+    "max_width_pct": 70.0,
+    "alignment": "center",
+    "opacity": 1.0,
+    "text_effects": {
+        "case": "uppercase",
+        "word_highlight": "current",
+        "auto_capitalization": true,
+        "auto_emoji": true
+    }
+}

@@ -76,6 +76,16 @@ class AlignmentError(VideoUploadError):
         super().__init__(message, status_code=500)
 
 
+class StyleNotFoundError(VideoUploadError):
+    def __init__(self, message: str = "Style definition not found"):
+        super().__init__(message, status_code=404)
+
+
+class StyleValidationError(VideoUploadError):
+    def __init__(self, message: str = "Invalid style properties"):
+        super().__init__(message, status_code=400)
+
+
 def register_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(VideoUploadError)
     async def video_upload_error_handler(request: Request, exc: VideoUploadError):

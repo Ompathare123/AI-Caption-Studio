@@ -1,0 +1,31 @@
+{
+    "font_family": "Roboto",
+    "font_size": 25.0,
+    "font_weight": "bold",
+    "text_color": "#FFFFFF",
+    "highlight_color": "#FF0000",
+    "outline_color": "#000000",
+    "outline_width": 2.0,
+    "shadow_color": "#000000",
+    "shadow_offset_x": 1.5,
+    "shadow_offset_y": 1.5,
+    "background_box": true,
+    "background_color": "#000000",
+    "background_opacity": 0.6,
+    "border_radius": 4.0,
+    "padding": 8.0,
+    "line_spacing": 1.2,
+    "letter_spacing": 0.1,
+    "safe_margin": 20.0,
+    "vertical_position": "bottom",
+    "horizontal_position": "center",
+    "max_width_pct": 85.0,
+    "alignment": "center",
+    "opacity": 1.0,
+    "text_effects": {
+        "case": "normal",
+        "word_highlight": "current",
+        "auto_capitalization": true,
+        "auto_emoji": true
+    }
+}

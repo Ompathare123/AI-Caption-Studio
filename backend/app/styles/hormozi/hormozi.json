@@ -1,0 +1,31 @@
+{
+    "font_family": "Impact",
+    "font_size": 32.0,
+    "font_weight": "bold",
+    "text_color": "#FFFF00",
+    "highlight_color": "#00FF00",
+    "outline_color": "#000000",
+    "outline_width": 3.0,
+    "shadow_color": "#000000",
+    "shadow_offset_x": 3.0,
+    "shadow_offset_y": 3.0,
+    "background_box": false,
+    "background_color": "#000000",
+    "background_opacity": 0.0,
+    "border_radius": 0.0,
+    "padding": 15.0,
+    "line_spacing": 1.1,
+    "letter_spacing": 1.0,
+    "safe_margin": 10.0,
+    "vertical_position": "center",
+    "horizontal_position": "center",
+    "max_width_pct": 65.0,
+    "alignment": "center",
+    "opacity": 1.0,
+    "text_effects": {
+        "case": "uppercase",
+        "word_highlight": "current",
+        "auto_capitalization": true,
+        "auto_emoji": true
+    }
+}

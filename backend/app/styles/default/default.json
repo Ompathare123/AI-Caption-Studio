@@ -1,0 +1,31 @@
+{
+    "font_family": "Arial",
+    "font_size": 24.0,
+    "font_weight": "normal",
+    "text_color": "#FFFFFF",
+    "highlight_color": "#FFFF00",
+    "outline_color": "#000000",
+    "outline_width": 1.5,
+    "shadow_color": "#000000",
+    "shadow_offset_x": 1.0,
+    "shadow_offset_y": 1.0,
+    "background_box": false,
+    "background_color": "#000000",
+    "background_opacity": 0.5,
+    "border_radius": 0.0,
+    "padding": 5.0,
+    "line_spacing": 1.2,
+    "letter_spacing": 0.0,
+    "safe_margin": 20.0,
+    "vertical_position": "bottom",
+    "horizontal_position": "center",
+    "max_width_pct": 80.0,
+    "alignment": "center",
+    "opacity": 1.0,
+    "text_effects": {
+        "case": "normal",
+        "word_highlight": "none",
+        "auto_capitalization": true,
+        "auto_emoji": false
+    }
+}

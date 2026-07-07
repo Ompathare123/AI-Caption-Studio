@@ -79,10 +79,11 @@ AI Caption Studio is a professional, production-ready, AI-powered video caption 
 - **Milestone 4**: Speech-to-Text transcription with Faster-Whisper. (Completed)
 - **Milestone 5**: Word-level alignment with WhisperX. (Completed)
 - **Milestone 6**: Subtitle generation engine. (Completed)
-- **Milestone 7**: Video rendering with stylized and animated captions.
-- **Milestone 8**: Frontend UI development (React + TypeScript + Tailwind CSS).
-- **Milestone 9**: Database integrations, user history, and job queue.
-- **Milestone 10**: Deployment, Dockerization, and CI/CD pipelines.
+- **Milestone 7**: Caption style engine. (Completed)
+- **Milestone 8**: Video rendering with stylized and animated captions.
+- **Milestone 9**: Frontend UI development (React + TypeScript + Tailwind CSS).
+- **Milestone 10**: Database integrations, user history, and job queue.
+- **Milestone 11**: Deployment, Dockerization, and CI/CD pipelines.
 
 ---
 
@@ -382,6 +383,195 @@ To ensure natural readability, we group raw words into structured caption blocks
     },
     "caption_count": 58,
     "status": "completed"
+  }
+  ```
+
+---
+
+## Caption Style Engine Architecture (Milestone 7)
+
+We implement a decoupled **Caption Style Engine** that defines visual presentation presets (font sizes, text spacing, outlines, background boxes) and text rendering effects (case transformations, auto emoji injections) with responsive resolution scaling.
+
+### Supported Presets & Configs
+The engine loads style properties dynamically from JSON files stored on disk. Predefined styles include:
+- **TikTok**: Bold, uppercase Montserrat font, cyan outline, high-contrast black background box, and emojis enabled.
+- **Instagram**: Bold, titlecase Proxima Nova font, magenta highlight color.
+- **YouTube Shorts**: Bold Roboto font, red highlight, moderate safe margins.
+- **Podcast**: Regular Georgia font, soft gold highlight color, wide spacing for high-end feel.
+- **Alex Hormozi**: Extremely large uppercase yellow Impact font with a heavy black outline, green word-highlights, and emojis.
+- **MrBeast**: Bold, uppercase Futura font, yellow highlights, cyan outlines, and emojis.
+- **Minimal**: Simple white Arial font, bottom-center alignment, no boxes or outline clutter.
+- **Cinema**: High letter-spacing Times New Roman font, safe layout margins.
+- **Gaming**: Bright green uppercase Orbitron font, background box, left alignment.
+- **Documentary**: Clean Helvetica font, bottom-left aligned background block.
+
+### Responsive Design & Auto-Scaling
+Visual attributes automatically adapt proportionally based on video dimensions and aspect ratio layout to maintain identical relative sizes on export:
+- **Scaling Factor**: Calculated relative to base 1080p standard reference frames (e.g. 1080 width for vertical, 1920 width for horizontal).
+- **Scaled Attributes**: Proportional adjustments are made to `font_size`, `outline_width`, `shadow_offset`, `padding`, `border_radius`, and `safe_margin`.
+
+### Custom User Styles
+Users can define customized style sheets through the API. The custom configuration is validated against the Pydantic schema and saved on disk in `backend/app/styles/custom/`. It is instantly available in the listing of styles.
+
+### New Module Files
+1. **[caption_style.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/schemas/caption_style.py)**: Decoupled Pydantic model schemas validating HEX color patterns, safe dimensions bounds, and request/response payloads.
+2. **[style_loader.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/services/style_loader.py)**: Dynamic loader class scanning directory folders, verifying JSON syntax, and writing custom profiles to disk.
+3. **[style_manager.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/services/style_manager.py)**: Formatting manager applying casing transformations (uppercase, lowercase, titlecase), sentence auto capitalization, and emoji mapping injections (e.g. "fire" -> "🔥"). Also implements the layout scaling helper.
+4. **[caption_style_service.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/services/caption_style_service.py)**: Orchestrator service routing raw caption sequences to loaders and formatters.
+5. **[caption_style.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/api/v1/endpoints/caption_style.py)**: Exposes endpoint paths to apply styles, fetch files, and register custom profiles.
+
+---
+
+### REST API Documentation
+
+#### 1. List Available Caption Styles
+- **Endpoint**: `GET /api/v1/styles`
+- **Successful Response (`HTTP 200 OK`)**:
+  ```json
+  [
+    "cinema",
+    "default",
+    "documentary",
+    "gaming",
+    "hormozi",
+    "instagram",
+    "mrbeast",
+    "podcast",
+    "tiktok",
+    "youtube"
+  ]
+  ```
+
+#### 2. Create Custom Style Sheet
+- **Endpoint**: `POST /api/v1/styles/custom`
+- **Content-Type**: `application/json`
+- **Request Body**:
+  ```json
+  {
+    "style_name": "my_brand_style",
+    "style_properties": {
+      "font_family": "Futura",
+      "font_size": 24.0,
+      "font_weight": "bold",
+      "text_color": "#FF5500",
+      "highlight_color": "#00FF55",
+      "outline_color": "#000000",
+      "outline_width": 2.0,
+      "shadow_color": "#000000",
+      "shadow_offset_x": 1.0,
+      "shadow_offset_y": 1.0,
+      "background_box": true,
+      "background_color": "#111111",
+      "background_opacity": 0.8,
+      "border_radius": 4.0,
+      "padding": 8.0,
+      "line_spacing": 1.3,
+      "letter_spacing": 0.5,
+      "safe_margin": 15.0,
+      "vertical_position": "bottom",
+      "horizontal_position": "center",
+      "max_width_pct": 75.0,
+      "alignment": "center",
+      "opacity": 1.0,
+      "text_effects": {
+        "case": "uppercase",
+        "word_highlight": "current",
+        "auto_capitalization": true,
+        "auto_emoji": true
+      }
+    }
+  }
+  ```
+- **Successful Response (`HTTP 201 Created`)**:
+  ```json
+  {
+    "message": "Custom style 'my_brand_style' created successfully",
+    "filepath": "backend/app/styles/custom/my_brand_style.json"
+  }
+  ```
+
+#### 3. Apply Style Configuration
+- **Endpoint**: `POST /api/v1/styles/apply`
+- **Content-Type**: `application/json`
+- **Request Body**:
+  ```json
+  {
+    "style_name": "tiktok",
+    "width": 1080,
+    "height": 1920,
+    "aspect_ratio": "vertical",
+    "subtitles": [
+      {
+        "index": 1,
+        "start": 0.0,
+        "end": 2.0,
+        "text": "this is a cool fire game",
+        "words": [
+          {"word": "this", "start": 0.0, "end": 0.3},
+          {"word": "is", "start": 0.3, "end": 0.6},
+          {"word": "a", "start": 0.6, "end": 0.8},
+          {"word": "cool", "start": 0.8, "end": 1.2},
+          {"word": "fire", "start": 1.2, "end": 1.6},
+          {"word": "game", "start": 1.6, "end": 2.0}
+        ]
+      }
+    ]
+  }
+  ```
+- **Successful Response (`HTTP 200 OK`)**:
+  ```json
+  {
+    "style_name": "tiktok",
+    "width": 1080,
+    "height": 1920,
+    "aspect_ratio": "vertical",
+    "style_properties": {
+      "font_family": "Montserrat",
+      "font_size": 28.0,
+      "font_weight": "bold",
+      "text_color": "#FFFFFF",
+      "highlight_color": "#00FFFF",
+      "outline_color": "#000000",
+      "outline_width": 2.5,
+      "shadow_color": "#FF007F",
+      "shadow_offset_x": 2.0,
+      "shadow_offset_y": 2.0,
+      "background_box": true,
+      "background_color": "#000000",
+      "background_opacity": 0.7,
+      "border_radius": 8.0,
+      "padding": 12.0,
+      "line_spacing": 1.3,
+      "letter_spacing": 0.5,
+      "safe_margin": 15.0,
+      "vertical_position": "center",
+      "horizontal_position": "center",
+      "max_width_pct": 75.0,
+      "alignment": "center",
+      "opacity": 1.0,
+      "text_effects": {
+        "case": "uppercase",
+        "word_highlight": "current",
+        "auto_capitalization": true,
+        "auto_emoji": true
+      }
+    },
+    "styled_subtitles": [
+      {
+        "index": 1,
+        "start": 0.0,
+        "end": 2.0,
+        "text": "THIS IS A COOL 😎 FIRE 🔥 GAME 🎮",
+        "words": [
+          {"word": "THIS", "start": 0.0, "end": 0.3},
+          {"word": "IS", "start": 0.3, "end": 0.6},
+          {"word": "A", "start": 0.6, "end": 0.8},
+          {"word": "COOL 😎", "start": 0.8, "end": 1.2},
+          {"word": "FIRE 🔥", "start": 1.2, "end": 1.6},
+          {"word": "GAME 🎮", "start": 1.6, "end": 2.0}
+        ]
+      }
+    ]
   }
   ```
 

@@ -1,0 +1,31 @@
+{
+    "font_family": "Times New Roman",
+    "font_size": 18.0,
+    "font_weight": "normal",
+    "text_color": "#EEEEEE",
+    "highlight_color": "#FFFFFF",
+    "outline_color": "#000000",
+    "outline_width": 1.0,
+    "shadow_color": "#000000",
+    "shadow_offset_x": 0.5,
+    "shadow_offset_y": 0.5,
+    "background_box": false,
+    "background_color": "#000000",
+    "background_opacity": 0.0,
+    "border_radius": 0.0,
+    "padding": 4.0,
+    "line_spacing": 1.3,
+    "letter_spacing": 1.5,
+    "safe_margin": 40.0,
+    "vertical_position": "bottom",
+    "horizontal_position": "center",
+    "max_width_pct": 80.0,
+    "alignment": "center",
+    "opacity": 0.9,
+    "text_effects": {
+        "case": "normal",
+        "word_highlight": "none",
+        "auto_capitalization": false,
+        "auto_emoji": false
+    }
+}

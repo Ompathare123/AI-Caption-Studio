@@ -1,0 +1,31 @@
+{
+    "font_family": "Georgia",
+    "font_size": 22.0,
+    "font_weight": "normal",
+    "text_color": "#FDFBF7",
+    "highlight_color": "#D4AF37",
+    "outline_color": "#1A1A1A",
+    "outline_width": 1.0,
+    "shadow_color": "#000000",
+    "shadow_offset_x": 1.0,
+    "shadow_offset_y": 1.0,
+    "background_box": false,
+    "background_color": "#000000",
+    "background_opacity": 0.0,
+    "border_radius": 0.0,
+    "padding": 6.0,
+    "line_spacing": 1.4,
+    "letter_spacing": 0.3,
+    "safe_margin": 30.0,
+    "vertical_position": "bottom",
+    "horizontal_position": "center",
+    "max_width_pct": 70.0,
+    "alignment": "center",
+    "opacity": 1.0,
+    "text_effects": {
+        "case": "normal",
+        "word_highlight": "none",
+        "auto_capitalization": true,
+        "auto_emoji": false
+    }
+}

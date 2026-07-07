@@ -15,6 +15,7 @@ class Settings(BaseSettings):
     TEMP_DIR: str = "backend/temp"
     AUDIO_FOLDER: str = "backend/temp/audio"
     SUBTITLES_OUTPUT_DIR: str = "backend/outputs/subtitles"
+    STYLES_DIR: str = "backend/app/styles"
 
     # Upload Configurations
     # Default: 2 GB in bytes (2 * 1024 * 1024 * 1024)
@@ -44,6 +45,11 @@ class Settings(BaseSettings):
     READING_SPEED: int = 18
     DEFAULT_SUBTITLE_FORMAT: str = "srt"
 
+    # Caption Style Engine Configurations
+    DEFAULT_STYLE: str = "default"
+    DEFAULT_FONT: str = "Arial"
+    DEFAULT_FONT_SIZE: int = 24
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -60,5 +66,7 @@ for directory in [
     settings.TEMP_DIR,
     settings.AUDIO_FOLDER,
     settings.SUBTITLES_OUTPUT_DIR,
+    settings.STYLES_DIR,
+    os.path.join(settings.STYLES_DIR, "custom")
 ]:
     os.makedirs(directory, exist_ok=True)

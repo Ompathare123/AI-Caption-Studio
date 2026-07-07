@@ -1,0 +1,31 @@
+{
+    "font_family": "Proxima Nova",
+    "font_size": 26.0,
+    "font_weight": "bold",
+    "text_color": "#FFFFFF",
+    "highlight_color": "#FF007F",
+    "outline_color": "#000000",
+    "outline_width": 2.0,
+    "shadow_color": "#000000",
+    "shadow_offset_x": 0.0,
+    "shadow_offset_y": 0.0,
+    "background_box": false,
+    "background_color": "#000000",
+    "background_opacity": 0.0,
+    "border_radius": 0.0,
+    "padding": 10.0,
+    "line_spacing": 1.25,
+    "letter_spacing": 0.2,
+    "safe_margin": 25.0,
+    "vertical_position": "bottom",
+    "horizontal_position": "center",
+    "max_width_pct": 80.0,
+    "alignment": "center",
+    "opacity": 0.95,
+    "text_effects": {
+        "case": "titlecase",
+        "word_highlight": "current",
+        "auto_capitalization": true,
+        "auto_emoji": true
+    }
+}
