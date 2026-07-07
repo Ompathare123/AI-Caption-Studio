@@ -9,3 +9,6 @@ pytest>=7.0.0
 httpx>=0.24.0
 faster-whisper>=1.0.0
 whisperx
+celery>=5.3.0
+redis>=5.0.0
+websockets>=12.0

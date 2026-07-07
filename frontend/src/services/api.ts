@@ -84,6 +84,18 @@ export interface ProjectResponse {
   updated_at: string;
 }
 
+export interface JobResponse {
+  id: string;
+  project_id: string;
+  status: string;
+  progress: number;
+  current_step: string | null;
+  created_at: string;
+  started_at: string | null;
+  completed_at: string | null;
+  error_message: string | null;
+}
+
 export const apiService = {
   /**
    * Upload video binary file
@@ -249,5 +261,40 @@ export const apiService = {
       updateData
     );
     return response.data;
+  },
+
+  /**
+   * Submit background caption alignment job
+   */
+  createJob: async (projectId: string): Promise<JobResponse> => {
+    const response = await api.post<JobResponse>("/jobs", {
+      project_id: projectId,
+    });
+    return response.data;
+  },
+
+  /**
+   * Get background job details
+   */
+  getJob: async (jobId: string): Promise<JobResponse> => {
+    const response = await api.get<JobResponse>(`/jobs/${jobId}`);
+    return response.data;
+  },
+
+  /**
+   * Cancel running background job
+   */
+  cancelJob: async (jobId: string): Promise<any> => {
+    const response = await api.delete(`/jobs/${jobId}`);
+    return response.data;
+  },
+
+  /**
+   * Build WebSocket url for progress updates channel
+   */
+  getJobProgressWsUrl: (jobId: string): string => {
+    const wsProto = window.location.protocol === "https:" ? "wss:" : "ws:";
+    const host = "localhost:8000"; // backend default port mapping
+    return `${wsProto}//${host}/api/v1/jobs/${jobId}/progress`;
   },
 };

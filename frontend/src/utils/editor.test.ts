@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 import { splitSegment, mergeSegments } from "./editor";
-import { AlignmentSegment } from "../services/api";
+import type { AlignmentSegment } from "../services/api";
 
 const mockSegments: AlignmentSegment[] = [
   {

@@ -8,6 +8,7 @@ from backend.app.api.v1.endpoints.caption_style import router as caption_style_r
 from backend.app.api.v1.endpoints.animation import router as animation_router
 from backend.app.api.v1.endpoints.render import router as render_router
 from backend.app.api.v1.endpoints.project import router as project_router
+from backend.app.api.v1.endpoints.job import router as job_router
 
 api_router = APIRouter()
 api_router.include_router(upload_router, tags=["upload"])
@@ -19,3 +20,4 @@ api_router.include_router(caption_style_router, prefix="/styles", tags=["styles"
 api_router.include_router(animation_router, prefix="/animations", tags=["animations"])
 api_router.include_router(render_router, prefix="/render", tags=["render"])
 api_router.include_router(project_router, prefix="/projects", tags=["projects"])
+api_router.include_router(job_router, prefix="/jobs", tags=["jobs"])

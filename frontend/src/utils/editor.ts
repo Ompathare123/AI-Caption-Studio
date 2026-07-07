@@ -1,4 +1,4 @@
-import { AlignmentSegment } from "../services/api";
+import type { AlignmentSegment } from "../services/api";
 
 export const splitSegment = (
   segments: AlignmentSegment[],

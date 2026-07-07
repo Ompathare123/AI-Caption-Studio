@@ -903,5 +903,52 @@ We implement the core editing workspace in the React frontend and link it to the
 
 ---
 
+## Background Processing System (Milestone 12)
+
+We implement a production-grade, highly scalable asynchronous background processing system powered by **Celery** with **Redis** message brokers, coupled with **FastAPI WebSockets** for live progress tracking.
+
+### Queue Architecture & Pipelines
+```
+[Video Uploaded] -> [Create Project & Job] -> [process_caption_pipeline_task.delay()]
+                                                              ↓
+                                                    [Redis Broker Queue]
+                                                              ↓
+                                                     [Celery Task Worker]
+                                         ┌────────────────────┼────────────────────┐
+                                 (15% Progress)        (45% Progress)       (70% Progress)
+                              [Extract Audio Track]  [ASR Transcription]   [Phoneme Alignment]
+                                         │                    │                    │
+                                         └────────────────────┼────────────────────┘
+                                                              ↓
+                                                      (85% Progress)
+                                                [Generate Subtitle Formats]
+                                                              ↓
+                                                      (100% Progress)
+                                                  [Completed in Database]
+```
+
+### Core Features
+
+1. **Scalable Worker Queue (Celery & Redis)**:
+   - Video transcription and processing jobs run out-of-process in Celery workers, preventing API server request timeouts.
+   - Fallback in-memory eager mode (`task_always_eager = True`) is enabled automatically if Redis connection checks fail, ensuring zero-config out-of-the-box local developer testing compatibility.
+2. **FastAPI WebSockets Channel**:
+   - WebSocket `/api/v1/jobs/{job_id}/progress` accepts connections, subscribes to Redis channel `job_progress_{job_id}` via PubSub, and broadcasts progress percentages and steps logs instantly.
+   - Resilient database polling fallback updates client view if Redis connection is not established locally.
+3. **Database Jobs Tracking (`models/job.py`)**:
+   - Keeps detailed records of job states (`uploaded`, `queued`, `extracting_audio`, `transcribing`, `aligning`, `subtitle_generation`, `completed`, `failed`, `cancelled`), progress levels, created/started/completed timestamps, and error messages.
+4. **Interactive Abort Action**:
+   - `DELETE /api/v1/jobs/{job_id}` cancels tasks, updating statuses to `cancelled` and calling `celery_app.control.revoke()` to terminate executing worker threads.
+
+### New Files Created
+*   **[celery_app.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/queue/celery_app.py)**: Celery broker/backend settings, eager fallbacks, and task imports.
+*   **[tasks.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/queue/tasks.py)**: Sequenced ASR pipeline tasks, Redis PubSub broadcast publishers, and in-memory status trackers.
+*   **[job.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/models/job.py)**: Job SQLAlchemy entity models.
+*   **[job.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/schemas/job.py)**: Pydantic schemas.
+*   **[job.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/api/v1/endpoints/job.py)**: REST routers and WebSockets broadcasters.
+*   **[test_job.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/tests/test_job.py)**: End-to-end integration lifecycle test suites.
+
+---
+
 ## License
 MIT
