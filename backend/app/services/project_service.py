@@ -11,7 +11,11 @@ class ProjectService:
 
     @staticmethod
     def create_project(
-        db: Session, video_id: str, subtitle_id: str = None
+        db: Session,
+        video_id: str,
+        subtitle_id: str = None,
+        user_id: str = None,
+        name: str = "Untitled Project",
     ) -> Project:
         """
         Verify video existence, load initial aligned captions JSON segments
@@ -31,7 +35,6 @@ class ProjectService:
                 with open(sub_path, "r", encoding="utf-8") as f:
                     captions = json.load(f)
             except Exception:
-                # Graceful empty fallbacks if subtitle files are not resolved
                 captions = []
 
         default_style = {
@@ -59,7 +62,9 @@ class ProjectService:
         }
 
         project = Project(
+            user_id=user_id,
             video_id=video_id,
+            name=name,
             captions_data=captions,
             style_data=default_style,
             animation_preset="word_highlight",
@@ -71,9 +76,6 @@ class ProjectService:
 
     @staticmethod
     def get_project(db: Session, project_id: str) -> Project:
-        """
-        Load Project database records by ID.
-        """
         project = db.query(Project).filter(Project.id == project_id).first()
         if not project:
             raise RenderingError(
@@ -85,17 +87,46 @@ class ProjectService:
     def update_project(
         db: Session,
         project_id: str,
-        captions_data: list,
-        style_data: dict,
-        animation_preset: str,
+        captions_data: list = None,
+        style_data: dict = None,
+        animation_preset: str = None,
+        name: str = None,
+        is_favorite: bool = None,
     ) -> Project:
-        """
-        Update the captions array, visual styles properties, and animation presets.
-        """
         project = ProjectService.get_project(db, project_id)
-        project.captions_data = captions_data
-        project.style_data = style_data
-        project.animation_preset = animation_preset
+        if captions_data is not None:
+            project.captions_data = captions_data
+        if style_data is not None:
+            project.style_data = style_data
+        if animation_preset is not None:
+            project.animation_preset = animation_preset
+        if name is not None:
+            project.name = name
+        if is_favorite is not None:
+            project.is_favorite = is_favorite
         db.commit()
         db.refresh(project)
         return project
+
+    @staticmethod
+    def delete_project(db: Session, project_id: str) -> bool:
+        project = ProjectService.get_project(db, project_id)
+        db.delete(project)
+        db.commit()
+        return True
+
+    @staticmethod
+    def duplicate_project(db: Session, project_id: str) -> Project:
+        source = ProjectService.get_project(db, project_id)
+        duplicate = Project(
+            user_id=source.user_id,
+            video_id=source.video_id,
+            name=f"Copy of {source.name}",
+            captions_data=source.captions_data,
+            style_data=source.style_data,
+            animation_preset=source.animation_preset,
+        )
+        db.add(duplicate)
+        db.commit()
+        db.refresh(duplicate)
+        return duplicate

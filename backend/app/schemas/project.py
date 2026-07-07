@@ -11,23 +11,33 @@ class ProjectCreate(BaseModel):
         None,
         description="Optional subtitle ID to pre-populate timeline alignments",
     )
+    name: Optional[str] = Field(
+        "Untitled Project", description="Custom name of the project"
+    )
 
 
 class ProjectUpdate(BaseModel):
-    captions_data: List[Dict[str, Any]] = Field(
-        ..., description="Complete segment and words timed sequence lists"
+    captions_data: Optional[List[Dict[str, Any]]] = Field(
+        None, description="Complete segment and words timed sequence lists"
     )
-    style_data: Dict[str, Any] = Field(
-        ..., description="Visual captions style properties configs"
+    style_data: Optional[Dict[str, Any]] = Field(
+        None, description="Visual captions style properties configs"
     )
-    animation_preset: str = Field(
-        "word_highlight", description="Visual animation preset configuration name"
+    animation_preset: Optional[str] = Field(
+        None, description="Visual animation preset configuration name"
+    )
+    name: Optional[str] = Field(None, description="Renamed project title")
+    is_favorite: Optional[bool] = Field(
+        None, description="Toggle favorite state"
     )
 
 
 class ProjectResponse(BaseModel):
     id: str
+    user_id: Optional[str] = None
     video_id: str
+    name: str
+    is_favorite: bool
     captions_data: List[Dict[str, Any]]
     style_data: Dict[str, Any]
     animation_preset: str

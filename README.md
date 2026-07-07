@@ -950,5 +950,46 @@ We implement a production-grade, highly scalable asynchronous background process
 
 ---
 
+## Authentication & User Workspace (Milestone 13)
+
+We implement a complete user authentication and project workspace system. Every user has their own secure account with projects isolated and managed inside a professional dashboard interface.
+
+### Authentication Flow & JWT Architecture
+```
+[Client Login] -> [POST /api/v1/auth/login] -> [Verify bcrypt hash]
+                                                     ↓
+                                        [Issue JWT Tokens (Access/Refresh)]
+                                                     ↓
+                                    [Set HttpOnly & SameSite=Lax Cookies]
+                                                     ↓
+[Client Request] <- [Send Axios withCredentials] <- [Inject Header: Authorization Bearer]
+```
+
+### Core Features
+
+1. **Robust Authentication Security**:
+   - **Password Hashing**: Uses direct `bcrypt` password encryption for secure registry entries.
+   - **JWT Tokens (Access & Refresh)**: Generates signed access tokens (expires in 60 mins) and refresh tokens (expires in 7 days) via PyJWT HS256 algorithms.
+   - **Secure Cookie Sessions**: Stores JWTs in secure HttpOnly SameSite=Lax cookies, with dual-layer fallback checks for standard Authorization Bearer header imports.
+2. **Interactive Workspace Dashboard**:
+   - **Project Grid**: Lists user's specific projects loaded dynamically from SQLite.
+   - **Workspaces CRUD Operations**: Exposes creating, loading, updating styles, favoriting, and duplicating project workspace details securely.
+   - **Permissions Security**: Integrates current user verification dependency checks across endpoints; users can only access or delete projects belonging to their active sessions.
+3. **Advanced Projects Management**:
+   - **Instant Search**: Local/database search filtering matching project title names.
+   - **Dynamic Sorting & Filtering**: Sorts projects by title alphabetical sequences, creation datetimes, or update timings. Filters for quick access to favorited workspaces.
+
+### New Files Created
+*   **[user.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/models/user.py)**: SQLAlchemy user entity model.
+*   **[auth.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/core/auth.py)**: Bcrypt hash verifiers and JWT encoding/decoding utilities.
+*   **[auth.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/schemas/auth.py)**: User validation schemas.
+*   **[auth.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/api/v1/endpoints/auth.py)**: Auth sessions router.
+*   **[user.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/api/v1/endpoints/user.py)**: User profiles router.
+*   **[test_auth.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/tests/test_auth.py)**: Unit test suites for user auth lifecycles.
+*   **[AuthContext.tsx](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/frontend/src/context/AuthContext.tsx)**: React session manager provider.
+*   **[Login.tsx](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/frontend/src/pages/Login.tsx)** & **[Register.tsx](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/frontend/src/pages/Register.tsx)**: Beautiful form views.
+
+---
+
 ## License
 MIT

@@ -8,6 +8,9 @@ class Settings(BaseSettings):
     APP_NAME: str = "AI Caption Studio"
     API_PREFIX: str = "/api/v1"
     DEBUG: bool = True
+    SECRET_KEY: str = "secret-super-key-ai-caption-studio-2026-production-ready"
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7
 
     # Storage Configurations
     UPLOAD_DIR: str = "backend/uploads"

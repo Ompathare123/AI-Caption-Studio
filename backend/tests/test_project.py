@@ -6,9 +6,31 @@ from fastapi.testclient import TestClient
 from backend.app.core.config import settings
 from backend.app.database.session import Base, SessionLocal, engine
 from backend.app.models.video import Video
+from backend.app.models.user import User
+from backend.app.api.v1.endpoints.auth import get_current_user
 from backend.main import app
 
 client = TestClient(app)
+
+@pytest.fixture(autouse=True)
+def override_auth_dependency(db_session):
+    # Setup mock user in database
+    user = User(
+        id="test-user-id",
+        email="test@example.com",
+        hashed_password="dummy",
+        name="Test User"
+    )
+    db_session.add(user)
+    db_session.commit()
+    db_session.refresh(user)
+
+    def mock_get_current_user():
+        return user
+
+    app.dependency_overrides[get_current_user] = mock_get_current_user
+    yield
+    app.dependency_overrides.clear()
 
 
 @pytest.fixture(scope="function", autouse=True)

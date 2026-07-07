@@ -5,7 +5,16 @@ const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:8000/api/v1";
 
 const api = axios.create({
   baseURL: BASE_URL,
-  timeout: 600000, // 10 minutes timeout for heavy transcription or rendering tasks
+  timeout: 600000,
+  withCredentials: true,
+});
+
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem("access_token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
 });
 
 export interface VideoMetadata {
@@ -76,12 +85,25 @@ export interface RenderStatusResponse {
 
 export interface ProjectResponse {
   id: string;
+  user_id: string | null;
   video_id: string;
+  name: string;
+  is_favorite: boolean;
   captions_data: AlignmentSegment[];
   style_data: any;
   animation_preset: string;
   created_at: string;
   updated_at: string;
+}
+
+export interface UserResponse {
+  id: string;
+  email: string;
+  name: string;
+  avatar_url: string | null;
+  language: string;
+  timezone: string;
+  created_at: string;
 }
 
 export interface JobResponse {
@@ -256,6 +278,22 @@ export const apiService = {
       animation_preset: string;
     }
   ): Promise<ProjectResponse> => {
+    return apiService.updateProject(projectId, updateData);
+  },
+
+  /**
+   * Update project fields (e.g. rename, favorite, style, captions)
+   */
+  updateProject: async (
+    projectId: string,
+    updateData: {
+      captions_data?: AlignmentSegment[];
+      style_data?: any;
+      animation_preset?: string;
+      name?: string;
+      is_favorite?: boolean;
+    }
+  ): Promise<ProjectResponse> => {
     const response = await api.put<ProjectResponse>(
       `/projects/${projectId}`,
       updateData
@@ -296,5 +334,77 @@ export const apiService = {
     const wsProto = window.location.protocol === "https:" ? "wss:" : "ws:";
     const host = "localhost:8000"; // backend default port mapping
     return `${wsProto}//${host}/api/v1/jobs/${jobId}/progress`;
+  },
+
+  /**
+   * List all projects belonging to logged in user
+   */
+  listProjects: async (): Promise<ProjectResponse[]> => {
+    const response = await api.get<ProjectResponse[]>("/projects");
+    return response.data;
+  },
+
+  /**
+   * Delete project
+   */
+  deleteProject: async (projectId: string): Promise<any> => {
+    const response = await api.delete(`/projects/${projectId}`);
+    return response.data;
+  },
+
+  /**
+   * Duplicate project
+   */
+  duplicateProject: async (projectId: string): Promise<ProjectResponse> => {
+    const response = await api.post<ProjectResponse>(`/projects/${projectId}/duplicate`);
+    return response.data;
+  },
+
+  /**
+   * Register new user account
+   */
+  registerUser: async (payload: any): Promise<UserResponse> => {
+    const response = await api.post<UserResponse>("/auth/register", payload);
+    return response.data;
+  },
+
+  /**
+   * Authenticate user credentials and create session cookies
+   */
+  loginUser: async (payload: any): Promise<any> => {
+    const response = await api.post("/auth/login", payload);
+    return response.data;
+  },
+
+  /**
+   * Destroy user session and clear cookies
+   */
+  logoutUser: async (): Promise<any> => {
+    const response = await api.post("/auth/logout");
+    return response.data;
+  },
+
+  /**
+   * Reissue access tokens using refresh token cookies
+   */
+  refreshTokens: async (): Promise<any> => {
+    const response = await api.post("/auth/refresh");
+    return response.data;
+  },
+
+  /**
+   * Retrieve current user profile
+   */
+  getMe: async (): Promise<UserResponse> => {
+    const response = await api.get<UserResponse>("/users/me");
+    return response.data;
+  },
+
+  /**
+   * Update user profile settings
+   */
+  updateMe: async (payload: any): Promise<UserResponse> => {
+    const response = await api.put<UserResponse>("/users/me", payload);
+    return response.data;
   },
 };
