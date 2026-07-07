@@ -82,7 +82,7 @@ AI Caption Studio is a professional, production-ready, AI-powered video caption 
 - **Milestone 7**: Caption style engine. (Completed)
 - **Milestone 8**: Caption animation engine. (Completed)
 - **Milestone 9**: Video rendering with stylized and animated captions. (Completed)
-- **Milestone 10**: Frontend UI development (React + TypeScript + Tailwind CSS).
+- **Milestone 10**: Frontend UI development (React + TypeScript + Tailwind CSS). (Completed)
 - **Milestone 11**: Database integrations, user history, and job queue.
 - **Milestone 12**: Deployment, Dockerization, and CI/CD pipelines.
 
@@ -821,6 +821,59 @@ We implement a production-grade, frame-accurate **Video Rendering Engine** that 
     "error_message": null
   }
   ```
+
+---
+
+## Frontend UI Architecture (Milestone 10)
+
+We implement a production-grade, highly responsive, fast, and scalable **React** frontend scaffolded with **Vite** and **TypeScript**, configured with **Tailwind CSS v4**, and integrated with the FastAPI backend.
+
+### Project Folder Structure
+```
+frontend/
+├── public/                 # Static public assets
+├── src/
+│   ├── assets/             # Images and local styles
+│   ├── components/         # Reusable layouts (Layout.tsx, etc.)
+│   ├── context/            # Context stores (AppContext.tsx, ToastContext.tsx)
+│   ├── pages/              # Application pages:
+│   │   ├── Landing.tsx     # Hero features presentation
+│   │   ├── Dashboard.tsx   # History list and file upload triggers
+│   │   ├── Upload.tsx      # Video drag-and-drop dropzone chunk uploaders
+│   │   ├── Processing.tsx  # Logs monitor pipeline visualizer
+│   │   ├── Preview.tsx     # HTML timeline simulation workspace
+│   │   ├── Export.tsx      # Video and subtitles download cards
+│   │   ├── Settings.tsx    # Quality and speech model configuration
+│   │   └── NotFound.tsx    # 404 handler
+│   ├── services/
+│   │   └── api.ts          # Axios API endpoints triggers mappings
+│   ├── utils/
+│   │   ├── format.ts       # Durations and size display helpers
+│   │   └── format.test.ts  # Vitest unit test suites
+│   ├── App.css
+│   ├── App.tsx             # Routing & React Query provider definitions
+│   ├── index.css           # Tailwind v4 directives & theme configurations
+│   └── main.tsx            # DOM root mounting entry point
+├── package.json
+└── vite.config.ts          # Vite React + Tailwind plugin configurations
+```
+
+### Core Features
+
+#### 1. Global State Management & Persistence
+The `AppContext` coordinates active state values (uploaded videos, audio formats, aligned segments, export parameters) across routes. It persists recently processed uploads inside `localStorage` to simulate histories lists on the dashboard page.
+
+#### 2. Speech Processing Pipeline Progress
+The `Processing` page runs sequential backend endpoint triggers (audio extraction, transcription, timestamps alignment, subtitle compilation) dynamically. It updates steps in a pipeline visualizer, shows estimated time run forecasts, and tracks logs inside a terminal console box.
+
+#### 3. Real-Time HTML5 Player Simulation
+The `Preview` page replicates video overlays. When seeking or playing the original video, the browser matches elapsed playback durations with word alignments, applying outline strokes, pop zooms, Y-displacements, and background box margins locally in the viewport before rendering begins.
+
+#### 4. Vitest Testing Frameworks
+Unit tests are written inside `src/utils/format.test.ts` to ensure that size format helpers (e.g. converting bytes to KB/MB/GB) and durations calculations function accurately:
+```bash
+npm run test
+```
 
 ---
 
