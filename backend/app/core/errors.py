@@ -51,6 +51,16 @@ class AudioExtractionError(VideoUploadError):
         super().__init__(message, status_code=500)
 
 
+class AudioNotFoundError(VideoUploadError):
+    def __init__(self, message: str = "Audio file not found"):
+        super().__init__(message, status_code=404)
+
+
+class TranscriptionError(VideoUploadError):
+    def __init__(self, message: str = "Transcription failed"):
+        super().__init__(message, status_code=500)
+
+
 def register_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(VideoUploadError)
     async def video_upload_error_handler(request: Request, exc: VideoUploadError):

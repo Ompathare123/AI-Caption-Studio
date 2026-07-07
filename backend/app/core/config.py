@@ -28,6 +28,11 @@ class Settings(BaseSettings):
     AUDIO_SAMPLE_RATE: int = 16000
     AUDIO_CHANNELS: int = 1
 
+    # Faster-Whisper Configurations
+    WHISPER_MODEL: str = "small"
+    DEVICE: str = "cpu"
+    COMPUTE_TYPE: str = "int8"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

@@ -76,7 +76,7 @@ AI Caption Studio is a professional, production-ready, AI-powered video caption 
 - **Milestone 1**: Project initialization, directory structure, health check endpoint, environment setup. (Completed)
 - **Milestone 2**: Video upload & saving API, backend file storage, and integration tests. (Completed)
 - **Milestone 3**: Audio extraction using FFmpeg. (Completed)
-- **Milestone 4**: Speech-to-Text transcription with Faster-Whisper.
+- **Milestone 4**: Speech-to-Text transcription with Faster-Whisper. (Completed)
 - **Milestone 5**: Word-level alignment and SRT/ASS subtitle generation.
 - **Milestone 6**: Video rendering with stylized and animated captions.
 - **Milestone 7**: Frontend UI development (React + TypeScript + Tailwind CSS).
@@ -188,6 +188,69 @@ We run an FFmpeg subprocess using the following parameters:
     "duration": 12.4,
     "sample_rate": 16000,
     "channels": 1,
+    "status": "completed"
+  }
+  ```
+
+---
+
+## Speech Recognition Architecture (Milestone 4)
+
+We implement a highly optimized AI Speech Recognition Service using Faster-Whisper, loaded once on application startup as a cached singleton for maximum speed.
+
+### How Faster-Whisper Works
+
+Faster-Whisper is a reimplementation of OpenAI's Whisper model using **CTranslate2**, a fast inference engine for Transformer models. It optimizes execution via several techniques:
+1. **Weight Quantization**: Converts float32 parameters to float16 or 8-bit integers (int8). This reduces model size by up to 4x and accelerates CPU and GPU calculations with minimal loss in word error rate (WER).
+2. **Layer Fusion & Memory Reusage**: Fuses successive neural network operations (like matrix multiplication and activation layers) to minimize memory access overhead.
+3. **C++ Execution Engine**: Leverages optimized BLAS libraries (Intel MKL, OpenBLAS) for matrix operations on CPU, bypassing Python global interpreter lock (GIL) and runtime overhead.
+
+### Model Loading Singleton Pattern
+
+Loading neural networks from disk is a heavy task that takes several seconds and consumes significant RAM. We implement a **Cached Singleton Pattern** inside `TranscriptionService`:
+- On application startup (FastAPI `lifespan` initialization), the `TranscriptionService.load_model()` method is invoked.
+- It parses configurations (`WHISPER_MODEL`, `DEVICE`, `COMPUTE_TYPE` from environment variables) and loads the Whisper model once.
+- Subscriptions/transcription requests reuse the pre-loaded instance, bringing request latency down from several seconds to instantaneous inference.
+
+### New Module Files
+
+1. **[transcription_service.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/services/transcription_service.py)**: Manages class-level singleton caching for the loaded model and executes transcription segments mapping.
+2. **[transcription.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/schemas/transcription.py)**: Defines request body schemas (`TranscriptionRequest`) and responses (`TranscriptionResponse`).
+3. **[transcription.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/api/v1/endpoints/transcription.py)**: Exposes the `POST /api/v1/transcribe` endpoint route.
+
+### REST API Documentation
+
+#### Transcribe Audio to Text
+- **Endpoint**: `POST /api/v1/transcribe`
+- **Content-Type**: `application/json`
+- **Request Body**:
+  ```json
+  {
+    "audio_id": "8c257d90-349f-43b6-96cb-52ebc689d0c2"
+  }
+  ```
+- **Validations Enforced**:
+  - **Presence Check**: Verifies if the WAV file corresponding to `audio_id` exists in the local directory. (Returns `HTTP 404 Not Found` if missing).
+  - **Model State Check**: Verifies model loaded status. (Returns `HTTP 500 Internal Server Error` if initialization failed).
+- **Successful Response (`HTTP 200 OK`)**:
+  ```json
+  {
+    "id": "bfcc4358-81da-4007-b44f-afb451940e64",
+    "language": "en",
+    "duration": 35.4,
+    "processing_time": 2.1,
+    "segments": [
+      {
+        "start": 0.0,
+        "end": 2.5,
+        "text": "Hello everyone."
+      },
+      {
+        "start": 2.5,
+        "end": 5.0,
+        "text": "Welcome back."
+      }
+    ],
     "status": "completed"
   }
   ```
