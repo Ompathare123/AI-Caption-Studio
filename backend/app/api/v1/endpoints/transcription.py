@@ -1,5 +1,7 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from sqlalchemy.orm import Session
 
+from backend.app.database.session import get_db
 from backend.app.schemas.transcription import (
     TranscriptionRequest,
     TranscriptionResponse,
@@ -19,6 +21,9 @@ router = APIRouter()
         "16kHz WAV audio to text segments."
     ),
 )
-def transcribe_audio(payload: TranscriptionRequest):
-    result = TranscriptionService.transcribe_audio(audio_id=payload.audio_id)
+def transcribe_audio(
+    payload: TranscriptionRequest,
+    db: Session = Depends(get_db),
+):
+    result = TranscriptionService.transcribe_audio(db=db, audio_id=payload.audio_id)
     return result

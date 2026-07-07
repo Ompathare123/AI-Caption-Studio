@@ -5,6 +5,7 @@ import pytest
 from fastapi.testclient import TestClient
 
 from backend.app.core.config import settings
+from backend.app.database.session import Base, engine
 from backend.app.services.transcription_service import TranscriptionService
 from backend.main import app
 
@@ -18,6 +19,19 @@ def mock_lifespan_model():
         "backend.app.services.transcription_service.WhisperModel"
     ) as mock_whisper:
         yield mock_whisper
+
+
+@pytest.fixture(scope="module", autouse=True)
+def setup_database():
+    Base.metadata.create_all(bind=engine)
+    yield
+    Base.metadata.drop_all(bind=engine)
+    engine.dispose()
+    if os.path.exists("./sql_app.db"):
+        try:
+            os.remove("./sql_app.db")
+        except PermissionError:
+            pass
 
 
 @pytest.fixture(scope="module", autouse=True)

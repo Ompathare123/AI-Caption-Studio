@@ -77,8 +77,8 @@ AI Caption Studio is a professional, production-ready, AI-powered video caption 
 - **Milestone 2**: Video upload & saving API, backend file storage, and integration tests. (Completed)
 - **Milestone 3**: Audio extraction using FFmpeg. (Completed)
 - **Milestone 4**: Speech-to-Text transcription with Faster-Whisper. (Completed)
-- **Milestone 5**: Word-level alignment and SRT/ASS subtitle generation.
-- **Milestone 6**: Video rendering with stylized and animated captions.
+- **Milestone 5**: Word-level alignment with WhisperX. (Completed)
+- **Milestone 6**: SRT/ASS subtitle generation and stylized/animated captions.
 - **Milestone 7**: Frontend UI development (React + TypeScript + Tailwind CSS).
 - **Milestone 8**: Database integrations, user history, and job queue.
 - **Milestone 9**: Deployment, Dockerization, and CI/CD pipelines.
@@ -249,6 +249,74 @@ Loading neural networks from disk is a heavy task that takes several seconds and
         "start": 2.5,
         "end": 5.0,
         "text": "Welcome back."
+      }
+    ],
+    "status": "completed"
+  }
+  ```
+
+---
+
+## Word Alignment Architecture (Milestone 5)
+
+We implement a production-grade Word Alignment Service using WhisperX to generate precise word-level timestamps.
+
+### What WhisperX Does
+
+WhisperX builds upon Whisper by incorporating phoneme alignment. While standard Whisper models only yield coarse segment-level timestamps (often spanning several words or seconds), WhisperX utilizes a phonetic alignment model (typically a Wav2Vec2 framework trained on phonemes) to align individual character/word boundaries precisely against the raw audio waveform.
+
+### Difference Between Faster-Whisper and WhisperX
+
+1. **Faster-Whisper**: A fast transformer implementation focusing on ASR (Automatic Speech Recognition) execution speed and RAM footprint optimization via CTranslate2. It is highly optimized for converting speech to text segments, but its timestamps are segment-level and can drift.
+2. **WhisperX**: Focuses on micro-precision word boundaries. It takes the text segment outputs (from ASR engines like Faster-Whisper) and uses a Wav2Vec2 model to phonetically map each individual word's start and end times to the milliseconds of the audio track.
+
+### Why Word-Level Timestamps are Required
+
+State-of-the-art subtitle systems require micro-precision word timestamps to:
+- Render animated word-by-word active coloring (e.g., karaoke-style captions popular on social media).
+- Avoid lag between voice onset and text rendering.
+- Dynamically split text segments into clean, readable lines without breaking sentences in half.
+
+### New Module Files
+
+1. **[transcript.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/models/transcript.py)**: Declares database schemas (`Transcript` and `TranscriptSegment`) to persist transcript runs and enable segment retrieval by UUID.
+2. **[alignment_service.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/services/alignment_service.py)**: Manages class-level cached dictionary of WhisperX alignment models per language and runs the phonetic alignment process.
+3. **[alignment.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/schemas/alignment.py)**: Defines request payload schemas (`AlignmentRequest`) and responses (`AlignmentResponse`).
+4. **[alignment.py](file:///c:/Users/Om%20Pathare/OneDrive/Documents/AI%20CAPTION/backend/app/api/v1/endpoints/alignment.py)**: Exposes the `POST /api/v1/align` endpoint router.
+
+### REST API Documentation
+
+#### Align Transcript to Audio Waveform
+- **Endpoint**: `POST /api/v1/align`
+- **Content-Type**: `application/json`
+- **Request Body**:
+  ```json
+  {
+    "audio_id": "8c257d90-349f-43b6-96cb-52ebc689d0c2",
+    "transcript_id": "9a12b456-78c9-0d12-e34f-5678ab9012cd"
+  }
+  ```
+- **Validations Enforced**:
+  - **Transcript Check**: Verifies the `transcript_id` exists in the database. (Returns `HTTP 404 Not Found` if missing).
+  - **Audio Check**: Verifies the wav file exists on disk. (Returns `HTTP 404 Not Found` if missing).
+- **Successful Response (`HTTP 200 OK`)**:
+  ```json
+  {
+    "id": "c1a2b3c4-d5e6-7f8a-9b0c-1d2e3f4a5b6c",
+    "language": "en",
+    "duration": 35.2,
+    "words": [
+      {
+        "word": "Hello",
+        "start": 0.01,
+        "end": 0.45,
+        "confidence": 0.99
+      },
+      {
+        "word": "everyone",
+        "start": 0.45,
+        "end": 0.90,
+        "confidence": 0.98
       }
     ],
     "status": "completed"

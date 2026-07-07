@@ -11,6 +11,8 @@ from backend.app.core.config import settings
 from backend.app.core.errors import register_error_handlers
 from backend.app.database.session import Base, engine
 from backend.app.services.transcription_service import TranscriptionService
+from backend.app.models.video import Video
+from backend.app.models.transcript import Transcript, TranscriptSegment
 
 
 @asynccontextmanager

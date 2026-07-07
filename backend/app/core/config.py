@@ -33,6 +33,10 @@ class Settings(BaseSettings):
     DEVICE: str = "cpu"
     COMPUTE_TYPE: str = "int8"
 
+    # WhisperX Alignment Configurations
+    ALIGNMENT_DEVICE: str = "cpu"
+    ALIGNMENT_BATCH_SIZE: int = 16
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
