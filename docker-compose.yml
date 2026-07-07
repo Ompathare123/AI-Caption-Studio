@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./backend:/app
+      - ./backend/uploads:/app/uploads
+      - ./backend/outputs:/app/outputs
+      - ./backend/temp:/app/temp
+    env_file:
+      - .env
+    environment:
+      - ENV=development
+    restart: always
+
+  # Future Frontend and Database services will be defined here.
+  # database:
+  #   image: postgres:15-alpine
+  #   ports:
+  #     - "5432:5432"
